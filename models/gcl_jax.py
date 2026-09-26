@@ -1,7 +1,6 @@
 from flax import nnx
 import jax
 import jax.numpy as jnp
-from .gnn_utiles import gcn_norm
 import torch
 import torch_geometric
 
@@ -131,7 +130,7 @@ class E_GCL_JAX(nnx.Module):
 
         if self.recurrent:
             new_hidden_state = new_hidden_state + hidden_state
-        return new_hidden_state, aggreate
+        return new_hidden_state, new_coord, aggreate
 
     def propergate_edge(self, 
                     hidden_state: jax.Array, 
