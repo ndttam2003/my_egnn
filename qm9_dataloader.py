@@ -4,6 +4,7 @@ import numpy as np
 import os
 from torch_geometric.loader import DataLoader
 import dotenv
+from functools import lru_cache
 dotenv.load_dotenv(override=True)
 flag = [True]
 def remove_self_loop(data):
