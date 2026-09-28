@@ -105,6 +105,7 @@ class E_GCL_JAX(nnx.Module):
                  edge_index: jax.Array, 
                  edge_attr: jax.Array = None, 
                  batch =None,
+                 num_graphs = 0,
                  rngs = None,
                  ):
 
@@ -112,10 +113,15 @@ class E_GCL_JAX(nnx.Module):
         
         if batch is None:
             num_nodes = hidden_state.shape[0]
-            C = 1 / (num_nodes - 1)
+            C = 1.0 / jnp.maximum(num_nodes - 1.0, 1.0)
         else:
-            num_nodes = jnp.zeros((batch[-1] + 1,), dtype=int).at[batch].add(jnp.ones_like(batch)).reshape(-1,1)
-            C = 1 / (num_nodes[batch] - 1)
+            # num_nodes = jnp.zeros((batch[-1] + 1,), dtype=int).at[batch].add(jnp.ones_like(batch)).reshape(-1,1)
+            # C = 1 / (num_nodes[batch] - 1)
+            if num_graphs == 0:
+                num_graphs = batch[-1] + 1
+            num_nodes = jnp.zeros((num_graphs,), dtype=jnp.float32).at[batch].add(1.0)
+            # jnp.maximum để tránh lỗi chia cho 0 nếu đồ thị chỉ có 1 nút
+            C = (1.0 / jnp.maximum(num_nodes[batch] - 1.0, 1.0)).reshape(-1, 1)
 
         messages = self.propergate_edge(hidden_state, distances, edge_index, edge_attr)
         new_coord = self.update_coord(coordinate, relative_coordinate, messages, edge_index, C)
